@@ -1,0 +1,40 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+# Load dataset
+df = pd.read_csv("/workspaces/Titanic_Dataset_Data_Cleaning_Preprocessing/archive (2).zip")
+
+# Handle missing values
+df['Age'] = df['Age'].fillna(df['Age'].median())
+df['Embarked'] = df['Embarked'].fillna(df['Embarked'].mode()[0])
+df.drop('Cabin', axis=1, inplace=True)
+
+# Encode categorical variables
+le = LabelEncoder()
+df['Sex'] = le.fit_transform(df['Sex'])
+df['Embarked'] = le.fit_transform(df['Embarked'])
+
+# Drop unnecessary columns
+df.drop(['PassengerId', 'Name', 'Ticket'], axis=1, inplace=True)
+
+# Remove outliers from Fare
+Q1 = df['Fare'].quantile(0.25)
+Q3 = df['Fare'].quantile(0.75)
+IQR = Q3 - Q1
+
+lower = Q1 - 1.5 * IQR
+upper = Q3 + 1.5 * IQR
+
+df = df[(df['Fare'] >= lower) & (df['Fare'] <= upper)]
+
+# Standardization
+scaler = StandardScaler()
+df[['Age', 'Fare']] = scaler.fit_transform(df[['Age', 'Fare']])
+
+print(df.head())
+print(df.info())
+print(df.isnull().sum())
